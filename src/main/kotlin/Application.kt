@@ -46,22 +46,23 @@ fun Routing.root() {
 
 fun Routing.user() {
     get("/user/all") {
-        val resultList= mutableListOf<User>()
+        var resultList= listOf<User>()
         transaction {
-            val result = UserTable.selectAll().map {
+            resultList = UserTable.selectAll().map {
                 println("User: ${it[UserTable.id]} - ${it[UserTable.name]}")
-                resultList.add(User(it[UserTable.id].value,it[UserTable.name],it[UserTable.lastName]))
+    //                resultList.add(User(it[UserTable.id].value,it[UserTable.name],it[UserTable.lastName]))
+                User(it[UserTable.id].value,it[UserTable.name],it[UserTable.lastName])
             }
         }
         call.respond(resultList)
     }
 
     get("/user/all/address") {
-        val resultList= mutableListOf<User>()
+        var resultList= listOf<User>()
         transaction {
-            (UserTable innerJoin AddressTable).selectAll().map {
+            resultList = (UserTable innerJoin AddressTable).selectAll().map {
                 println("User: ${it[UserTable.id]} - ${it[UserTable.name]}")
-                resultList.add(User(it[UserTable.id].value,it[UserTable.name],it[UserTable.lastName]))
+                User(it[UserTable.id].value,it[UserTable.name],it[UserTable.lastName])
             }
         }
         call.respond(resultList)
