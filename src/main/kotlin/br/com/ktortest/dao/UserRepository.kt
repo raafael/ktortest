@@ -17,7 +17,7 @@ class UserRepository() {
         val resultList : MutableList<User> = arrayListOf()
 
          transaction {
-            (UserTable innerJoin AddressTable).selectAll().map {
+            (UserTable innerJoin AddressTable).selectAll().forEach {
                 val address      = Address(it[AddressTable.id].value, it[AddressTable.street], it[AddressTable.zipCode], it[AddressTable.number])
                 val indexElement = resultList.indexOfFirst {u -> u.id == it[UserTable.id].value}
 
