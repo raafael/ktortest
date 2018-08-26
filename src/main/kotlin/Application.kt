@@ -1,22 +1,21 @@
 
 import br.com.ktortest.config.intiDB
-import br.com.ktortest.dao.AddressTable
-import br.com.ktortest.dao.UserTable
-import br.com.ktortest.model.User
+import br.com.ktortest.config.userAppModule
+import br.com.ktortest.route.user
+import br.com.ktortest.service.UserService
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.ContentNegotiation
 import io.ktor.gson.gson
-import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.koin.ktor.ext.inject
+import org.koin.standalone.StandAloneContext.startKoin
 import java.text.DateFormat
 
 fun main(args: Array<String>) {
@@ -24,6 +23,8 @@ fun main(args: Array<String>) {
 }
 
 fun Application.mainModule(){
+    // Start Koin
+    startKoin(listOf(userAppModule))
     intiDB()
     install(ContentNegotiation) {
         gson {
@@ -31,9 +32,12 @@ fun Application.mainModule(){
             setPrettyPrinting()
         }
     }
+    // in v1.0 we are going to inject inside Route, for now only in application
+    val service: UserService by inject()
+
     routing {
         root()
-        user()
+        user(service)
     }
 }
 
@@ -44,27 +48,3 @@ fun Routing.root() {
     }
 }
 
-fun Routing.user() {
-    get("/user/all") {
-        var resultList= listOf<User>()
-        transaction {
-            resultList = UserTable.selectAll().map {
-                println("User: ${it[UserTable.id]} - ${it[UserTable.name]}")
-    //                resultList.add(User(it[UserTable.id].value,it[UserTable.name],it[UserTable.lastName]))
-                User(it[UserTable.id].value,it[UserTable.name],it[UserTable.lastName])
-            }
-        }
-        call.respond(resultList)
-    }
-
-    get("/user/all/address") {
-        var resultList= listOf<User>()
-        transaction {
-            resultList = (UserTable innerJoin AddressTable).selectAll().map {
-                println("User: ${it[UserTable.id]} - ${it[UserTable.name]}")
-                User(it[UserTable.id].value,it[UserTable.name],it[UserTable.lastName])
-            }
-        }
-        call.respond(resultList)
-    }
-}
